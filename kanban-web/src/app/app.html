@@ -1,0 +1,18 @@
+<h1>🚀 Meu Quadro Kanban</h1>
+
+<div class="board">
+  @for (coluna of columns; track coluna.id) {
+    <div class="column">
+      <h2>{{ coluna.title }}</h2>
+
+      <div class="card-list">
+        @for (card of coluna.cards; track card.id) {
+          <div class="card">
+            <h3>{{ card.title }}</h3>
+            <p>{{ card.description }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
