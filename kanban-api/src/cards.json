@@ -1,14 +1,8 @@
 [
   {
     "id": 2,
-    "title": "Configurar API",
-    "description": "Finalizar a integração de colunas e cards",
-    "columnId": 1
-  },
-  {
-    "id": 3,
-    "title": "Configurar API",
-    "description": "Finalizar a integração de colunas e cards",
-    "columnId": 1
+    "columnId": 1,
+    "title": "criar um modal para os avisos",
+    "description": "Pepe crie um modal, pois fica muito mais interativo doquen um alert do google"
   }
 ]

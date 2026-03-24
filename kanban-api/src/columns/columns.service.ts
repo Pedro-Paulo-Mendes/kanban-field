@@ -19,9 +19,33 @@ export class ColumnsService {
     }));
   }
 
-  // Métodos "Placeholder" para o Controller não reclamar
-  create(dto: any) { return 'Esta ação adiciona uma nova coluna'; }
-  findOne(id: number) { return `Esta ação retorna a coluna #${id}`; }
-  update(id: number, dto: any) { return `Esta ação atualiza a coluna #${id}`; }
-  remove(id: number) { return `Esta ação remove a coluna #${id}`; }
+  create(dto: any) {
+    const newId = this.columns.length > 0 ? Math.max(...this.columns.map(c => c.id)) + 1 : 1;
+
+    const newColumn = {
+      id: newId,
+      title: dto.title
+    };
+
+    this.columns.push(newColumn);
+
+    return newColumn;
+  }
+
+  findOne(id: number) {
+    return this.columns.find(c => c.id === Number(id));
+  }
+
+  update(id: number, dto: any) {
+    const column = this.columns.find(c => c.id === Number(id));
+    if (column) {
+      column.title = dto.title;
+    }
+    return column;
+  }
+
+  remove(id: number) {
+    this.columns = this.columns.filter(c => c.id !== Number(id));
+    return { message: `Coluna ${id} removida com sucesso` };
+  }
 }
