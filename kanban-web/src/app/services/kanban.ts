@@ -41,7 +41,8 @@ export class KanbanService {
   }
 
   updateCard(card: Card): Observable<Card> {
-    return this.http.patch<Card>(`${this.apiUrl}/cards/${card.id}`, card);
+    const { id, ...cardData } = card;
+    return this.http.patch<Card>(`${this.apiUrl}/cards/${id}`, cardData);
   }
 
   deleteCard(cardId: number): Observable<void> {
