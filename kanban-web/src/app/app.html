@@ -1,8 +1,9 @@
 <div class="header">
   <div class="header-container">
-    <h1>Meu Quadro Kanban</h1>
+    <div class="header-spacer"></div>
+    <h1>Kanban Field</h1>
     <div class="header-actions">
-      <button (click)="addCardGlobal()" class="btn-primary" [disabled]="columns.length === 0">
+      <button (click)="addCardToFirstColumn()" class="btn-primary" [disabled]="columns.length === 0">
         + Nova Tarefa
       </button>
       <button (click)="addColumn()" class="btn-secondary">
@@ -13,20 +14,35 @@
 </div>
 
 <div class="board" cdkDropListGroup>
-  @for (coluna of columns; track coluna.id) {
+  @for (column of columns; track column.id) {
   <div class="column">
     <div class="column-header">
-      <h2>{{ coluna.title }}</h2>
-      <button (click)="deleteColumn(coluna.id)" class="btn-delete">X</button>
+      <h2>{{ column.title }}</h2>
+      <button (click)="requestDeleteColumn(column.id)" class="btn-delete">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 21C6.45 21 5.979 20.804 5.587 20.412C5.195 20.2 5 19.55 5 19V6H4V4H9V3H15V4H20V6H19V19C19 19.55 18.804 20.021 18.412 20.413C18.02 20.805 17.55 21 17 21H7ZM17 6H7V19H17V6ZM9 17H11V8H9V17ZM13 17H15V8H13V17Z" fill="currentColor"/>
+        </svg>
+      </button>
     </div>
 
-    <div class="card-list" cdkDropList [cdkDropListData]="coluna.cards" (cdkDropListDropped)="drop($event, coluna.id!)">
+    <div class="card-list" cdkDropList [cdkDropListData]="column.cards" (cdkDropListDropped)="onCardDrop($event, column.id!)">
 
-      @for (card of coluna.cards; track card.id) {
+      @for (card of column.cards; track card.id) {
       <div class="card" cdkDrag>
         <div class="card-header">
           <h3>{{ card.title }}</h3>
-          <button (click)="deleteCard(card.id!)" class="btn-delete-card">X</button>
+          <div class="card-actions">
+            <button (click)="editCard(card)" class="btn-edit-card">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" fill="currentColor"/>
+              </svg>
+            </button>
+            <button (click)="requestDeleteCard(card.id!)" class="btn-delete-card">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 21C6.45 21 5.979 20.804 5.587 20.412C5.195 20.2 5 19.55 5 19V6H4V4H9V3H15V4H20V6H19V19C19 19.55 18.804 20.021 18.412 20.413C18.02 20.805 17.55 21 17 21H7ZM17 6H7V19H17V6ZM9 17H11V8H9V17ZM13 17H15V8H13V17Z" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
         </div>
         <p>{{ card.description }}</p>
       </div>
@@ -36,38 +52,58 @@
   }
 </div>
 
-<!-- Modal Customizado -->
 @if (isModalOpen) {
 <div class="modal-overlay" (click)="closeModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>{{ modalType === 'column' ? 'Nova Coluna' : 'Nova Tarefa' }}</h2>
+      <h2>{{ isEditMode ? 'Editar Tarefa' : (modalType === 'column' ? 'Nova Coluna' : 'Nova Tarefa') }}</h2>
       <button class="btn-close-modal" (click)="closeModal()">×</button>
     </div>
 
     <div class="modal-body">
       <div class="form-group">
         <label>Título</label>
-        <input type="text" [(ngModel)]="modalTitle" 
+        <input type="text" [(ngModel)]="modalTitle"
                [placeholder]="modalType === 'column' ? 'Ex: Em Revisão' : 'Ex: Configurar Banco de Dados'"
-               [maxlength]="modalType === 'column' ? LIMITS.colTitle : LIMITS.cardTitle">
-        <span class="char-counter">{{ modalTitle.length }}/{{ modalType === 'column' ? LIMITS.colTitle : LIMITS.cardTitle }}</span>
+               [maxlength]="modalType === 'column' ? INPUT_LIMITS.columnTitleMaxLength : INPUT_LIMITS.cardTitleMaxLength">
+        <span class="char-counter">{{ modalTitle.length }}/{{ modalType === 'column' ? INPUT_LIMITS.columnTitleMaxLength : INPUT_LIMITS.cardTitleMaxLength }}</span>
       </div>
 
       @if (modalType === 'card') {
       <div class="form-group">
         <label>Descrição (Opcional)</label>
-        <textarea [(ngModel)]="modalDescription" 
+        <textarea [(ngModel)]="modalDescription"
                   placeholder="Detalhes da tarefa..."
-                  [maxlength]="LIMITS.cardDesc"></textarea>
-        <span class="char-counter">{{ modalDescription.length }}/{{ LIMITS.cardDesc }}</span>
+                  [maxlength]="INPUT_LIMITS.cardDescriptionMaxLength"></textarea>
+        <span class="char-counter">{{ modalDescription.length }}/{{ INPUT_LIMITS.cardDescriptionMaxLength }}</span>
       </div>
       }
     </div>
 
     <div class="modal-footer">
       <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
-      <button class="btn-primary" [disabled]="!modalTitle" (click)="saveModal()">Salvar</button>
+      <button class="btn-primary" [disabled]="!modalTitle" (click)="submitModal()">Salvar</button>
+    </div>
+  </div>
+</div>
+}
+
+@if (isConfirmModalOpen) {
+<div class="modal-overlay" (click)="closeConfirmModal()">
+  <div class="modal-content modal-confirm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmar Exclusão</h2>
+      <button class="btn-close-modal" (click)="closeConfirmModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <p>Tem certeza que deseja excluir esta {{ confirmDeleteType === 'column' ? 'coluna' : 'tarefa' }}?</p>
+      <p class="text-subtle">Esta ação removerá permanentemente o item e não poderá ser desfeita.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeConfirmModal()">Cancelar</button>
+      <button class="btn-primary btn-destructive" (click)="confirmDelete()">Sim, Excluir</button>
     </div>
   </div>
 </div>

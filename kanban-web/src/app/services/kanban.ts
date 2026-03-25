@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Card {
   id?: number;
@@ -19,34 +20,31 @@ export interface Column {
   providedIn: 'root'
 })
 export class KanbanService {
-  private apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   getColumns(): Observable<Column[]> {
     return this.http.get<Column[]>(`${this.apiUrl}/columns`);
   }
 
-  addColumn(title: string) {
-    return this.http.post(`${this.apiUrl}/columns`, { title });
+  addColumn(title: string): Observable<Column> {
+    return this.http.post<Column>(`${this.apiUrl}/columns`, { title });
   }
 
-  updateColumn(id: number, title: string): Observable<Column> {
-    return this.http.patch<Column>(`${this.apiUrl}/columns/${id}`, { title });
+  deleteColumn(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/columns/${id}`);
   }
 
-  deleteColumn(id: number) {
-    return this.http.delete(`${this.apiUrl}/columns/${id}`);
+  addCard(columnId: number, title: string, description: string = ''): Observable<Card> {
+    return this.http.post<Card>(`${this.apiUrl}/cards`, { columnId, title, description });
   }
 
   updateCard(card: Card): Observable<Card> {
     return this.http.patch<Card>(`${this.apiUrl}/cards/${card.id}`, card);
   }
-  addCard(columnId: number, title: string, description: string = ''): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cards`, { columnId, title, description });
-  }
 
-  deleteCard(cardId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/cards/${cardId}`);
+  deleteCard(cardId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/cards/${cardId}`);
   }
 }

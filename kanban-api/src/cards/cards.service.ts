@@ -1,15 +1,15 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Card } from './entities/card.entity';
+import { CreateCardDto } from './dto/create-card.dto';
+import { UpdateCardDto } from './dto/update-card.dto';
 
 @Injectable()
 export class CardsService implements OnModuleInit {
-  // Caminho para o arquivo que você acabou de criar
-  // Caminho para o arquivo que agora aponta corretamente para a pasta src
   private readonly filePath = path.resolve(process.cwd(), 'src', 'cards.json');
-  private cards: any[] = [];
+  private cards: Card[] = [];
 
-  // Esse método roda automaticamente quando o servidor liga
   onModuleInit() {
     this.loadData();
   }
@@ -21,7 +21,6 @@ export class CardsService implements OnModuleInit {
         this.cards = JSON.parse(data || '[]');
       }
     } catch (error) {
-      console.error('Erro ao ler cards.json, resetando memória.', error);
       this.cards = [];
     }
   }
@@ -30,40 +29,45 @@ export class CardsService implements OnModuleInit {
     fs.writeFileSync(this.filePath, JSON.stringify(this.cards, null, 2));
   }
 
-  findAll() {
+  findAll(): Card[] {
     return this.cards;
   }
 
-  create(createCardDto: any) {
-    const newCard = {
+  create(createCardDto: CreateCardDto): Card {
+    const newCard: Card = {
       id: this.cards.length > 0 ? Math.max(...this.cards.map(c => c.id)) + 1 : 1,
       ...createCardDto,
     };
     this.cards.push(newCard);
-    this.saveData(); // Escreve no arquivo físico
+    this.saveData();
     return newCard;
   }
 
-  findOne(id: number) {
-    return this.cards.find(c => c.id === Number(id));
+  findOne(id: number): Card {
+    const card = this.cards.find(c => c.id === id);
+    if (!card) {
+      throw new NotFoundException(`Card with ID ${id} not found`);
+    }
+    return card;
   }
 
-  // Se você tiver esses métodos no Controller, adicione-os aqui também:
-  update(id: number, updateCardDto: any) {
-    const index = this.cards.findIndex(c => c.id === Number(id));
-    if (index !== -1) {
-      this.cards[index] = { ...this.cards[index], ...updateCardDto };
-      this.saveData();
-      return this.cards[index];
+  update(id: number, updateCardDto: UpdateCardDto): Card {
+    const index = this.cards.findIndex(c => c.id === id);
+    if (index === -1) {
+      throw new NotFoundException(`Card with ID ${id} not found`);
     }
+    this.cards[index] = { ...this.cards[index], ...updateCardDto };
+    this.saveData();
+    return this.cards[index];
   }
 
-  remove(id: number) {
-    const index = this.cards.findIndex(c => c.id === Number(id));
-    if (index !== -1) {
-      this.cards.splice(index, 1);
-      this.saveData();
-      return { deleted: true };
+  remove(id: number): { deleted: boolean } {
+    const index = this.cards.findIndex(c => c.id === id);
+    if (index === -1) {
+      throw new NotFoundException(`Card with ID ${id} not found`);
     }
+    this.cards.splice(index, 1);
+    this.saveData();
+    return { deleted: true };
   }
 }

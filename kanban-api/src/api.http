@@ -1,19 +1,26 @@
-### Criar um novo Card
+### Create a new Card
 POST http://localhost:3000/cards
 Content-Type: application/json
 
 {
-  "title": "Configurar API",
-  "description": "Finalizar a integração de colunas e cards",
+  "title": "Configure Database",
+  "description": "Integration of columns and cards",
   "columnId": 1
 }
 
 ###
 
-### Listar Colunas com os Cards (Kanban)
+### List Columns with Cards (Kanban)
 GET http://localhost:3000/columns
 
-### Mover o Card 1 para "Em Andamento" (Coluna 2)
+###
+
+### Find a Card by ID
+GET http://localhost:3000/cards/1
+
+###
+
+### Update a Card (Move to Column 2)
 PATCH http://localhost:3000/cards/1
 Content-Type: application/json
 
@@ -23,5 +30,5 @@ Content-Type: application/json
 
 ###
 
-### Deletar o Card 1 (Tchau, querido)
+### Delete a Card
 DELETE http://localhost:3000/cards/1

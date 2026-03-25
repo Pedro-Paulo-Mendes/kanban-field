@@ -1,51 +1,62 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CardsService } from '../cards/cards.service';
+import { Column } from './entities/column.entity';
+import { CreateColumnDto } from './dto/create-column.dto';
+import { UpdateColumnDto } from './dto/update-column.dto';
 
 @Injectable()
 export class ColumnsService {
-  constructor(private cardsService: CardsService) { }
+  constructor(private cardsService: CardsService) {}
 
-  private columns = [
+  private columns: Column[] = [
     { id: 1, title: 'A Fazer' },
     { id: 2, title: 'Em Andamento' },
     { id: 3, title: 'Concluído' },
   ];
 
-  findAll() {
+  findAll(): Column[] {
     const allCards = this.cardsService.findAll();
     return this.columns.map(column => ({
       ...column,
-      cards: allCards.filter(card => Number(card.columnId) === column.id)
+      cards: allCards.filter(card => Number(card.columnId) === column.id),
     }));
   }
 
-  create(dto: any) {
+  create(createColumnDto: CreateColumnDto): Column {
     const newId = this.columns.length > 0 ? Math.max(...this.columns.map(c => c.id)) + 1 : 1;
 
-    const newColumn = {
+    const newColumn: Column = {
       id: newId,
-      title: dto.title
+      title: createColumnDto.title,
     };
 
     this.columns.push(newColumn);
-
     return newColumn;
   }
 
-  findOne(id: number) {
-    return this.columns.find(c => c.id === Number(id));
-  }
-
-  update(id: number, dto: any) {
-    const column = this.columns.find(c => c.id === Number(id));
-    if (column) {
-      column.title = dto.title;
+  findOne(id: number): Column {
+    const column = this.columns.find(c => c.id === id);
+    if (!column) {
+      throw new NotFoundException(`Column with ID ${id} not found`);
     }
     return column;
   }
 
-  remove(id: number) {
-    this.columns = this.columns.filter(c => c.id !== Number(id));
-    return { message: `Coluna ${id} removida com sucesso` };
+  update(id: number, updateColumnDto: UpdateColumnDto): Column {
+    const index = this.columns.findIndex(c => c.id === id);
+    if (index === -1) {
+      throw new NotFoundException(`Column with ID ${id} not found`);
+    }
+    this.columns[index] = { ...this.columns[index], ...updateColumnDto };
+    return this.columns[index];
+  }
+
+  remove(id: number): { message: string } {
+    const initialLength = this.columns.length;
+    this.columns = this.columns.filter(c => c.id !== id);
+    if (this.columns.length === initialLength) {
+      throw new NotFoundException(`Column with ID ${id} not found`);
+    }
+    return { message: `Column ${id} removed successfully` };
   }
 }
